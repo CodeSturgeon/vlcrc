@@ -63,9 +63,11 @@ class VLCRemote(object):
         return match
 
     def get_filename(self):
-        fn_re = re.compile('input: file://(?P<fn>.+?) \)',status,re.MULTILINE)
-        self._command('status', fn_re)
-        return match.groupdict()['fn']
+        fn_re = re.compile('input: file://(?P<fn>.+?) \)',re.MULTILINE)
+        match = self._command('status', fn_re)
+        fn = match.groupdict()['fn']
+        fn = fn.replace('%20',' ')
+        return fn
 
     def restart(self):
         self._command('seek',args=(0,))
