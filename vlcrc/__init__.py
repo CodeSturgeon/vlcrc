@@ -2,6 +2,8 @@ import telnetlib
 import re
 import logging
 
+class VLCBadReturn(Exception):
+    pass
 
 class VLCRemote(object):
     def __init__(self, hostname, port, timeout=3):
@@ -9,13 +11,21 @@ class VLCRemote(object):
         self.log = logging.getLogger('VLCRemote')
         self.timeout = timeout
 
-    def _command(self, cmd, return_re=None, raw=False, *args):
-
+    def _command(self, cmd, return_re=None, raw=False, args=None):
+        
+        # Clean out anything waiting before starting the command
         cached = self.cnx.read_eager()
         if cached != '':
+            self.log.debug('cleaning cache')
             self.log.debug('<- Recived: %s'%cached.strip())
 
-        cmd_str = '%s %s\n'%(cmd, ' '.join(args))
+        # FIXME - Ugly
+        cmd_str = '%s'%cmd
+        if args is not None:
+            cmd_str += ' '
+            cmd_str += ' '.join(args)
+        cmd_str += '\n'
+
         self.log.debug('-> Sending: %s'%cmd_str.strip())
         self.cnx.write(cmd_str)
 
@@ -27,7 +37,7 @@ class VLCRemote(object):
                 err_str += 'Expected: %s\n'%cmd_end
                 err_str += 'Got: %s'%cmd_ret
                 self.log.warn(err_str)
-                return False
+                raise VLCBadReturn(cmd_ret)
 
             good = '0 (no error)\r\n'
             cmd_fin = self.cnx.read_until('\r\n',3)
@@ -37,13 +47,12 @@ class VLCRemote(object):
                 err_str += 'Expected: %s%s'%(cmd_end,good)
                 err_str += 'Got: %s'%(cmd_ret)
                 self.log.warn(err_str)
-                return False
+                raise VLCBadReturn(cmd_ret)
             self.log.debug('<- Recived: %s'%cmd_ret.strip())
         else:
-            print return_re
             index, match, cmd_ret = self.cnx.expect([return_re], self.timeout)
             if match is None:
-                return False
+                raise VLCBadReturn(cmd_ret)
             self.log.debug('<- Recived: %s'%cmd_ret.strip())
             return match
 
@@ -70,14 +79,11 @@ class VLCRemote(object):
         self.cnx.read_until('seek: returned 0 (no error)\r\n',3)
 
     def skip(self, duration=60):
-        #time_re = re.compile('^(?:<time>d+)\r\n')
-        time_re = re.compile('(?:<time>\d+)\r\n')
-        ret = self._command('get_time', time_re, raw=True)
-        if ret:
-            time = ret.group_dict()['time']
-            gt = int(time)+duration
-            self.cnx.write('seek %d\n'%gt)
-            self.cnx.read_until('seek: returned 0 (no error)\r\n',3)
+        time_re = re.compile('(?P<time>\d+)\r\n')
+        ret_match = self._command('get_time', time_re, raw=True)
+        time = ret_match.groupdict()['time']
+        gt = str(int(time)+duration)
+        self._command('seek',args=(gt,))
 
     def next(self):
         self._command('next')
