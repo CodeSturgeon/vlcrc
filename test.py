@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 from easygui import multenterbox, buttonbox, codebox
-import pprint
 from vlcrc import VLCRemote
+import logging
+
+log = logging.getLogger()
+logging.basicConfig(level=logging.DEBUG)
 
 if 0:
     groups = multenterbox(msg='Enter groups you would like to file to',
@@ -38,16 +41,15 @@ for fname in groups_dict:
     l.append(fname)
     reorg[groups_dict[fname]] = l
 
-print reorg
-
 str = ''
 for grp in reorg:
     str += '--%s\n'%grp
     for fname in reorg[grp]:
         str += '%s\n'%fname
+print str
 
 
+#import pprint
 #pp = pprint.PrettyPrinter()
 #codebox(msg=pp.pformat(str))
 #pp.pprint(str)
-print str
