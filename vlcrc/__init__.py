@@ -63,20 +63,12 @@ class VLCRemote(object):
         return match
 
     def get_filename(self):
-        # Clear the queue
-        self.cnx.read_lazy()
-        self.cnx.write('status\n')
-        status = self.cnx.read_until('status: returned 0 (no error)\r\n',3)
-        match = re.search('input: (.+?) \)',status,re.MULTILINE)
-        if match is None:
-            print 'BAD STATUS'
-            print status
-        else:
-            return match.group(1)[7:]
+        fn_re = re.compile('input: file://(?P<fn>.+?) \)',status,re.MULTILINE)
+        self._command('status', fn_re)
+        return match.groupdict()['fn']
 
     def restart(self):
-        self.cnx.write('seek 0\n')
-        self.cnx.read_until('seek: returned 0 (no error)\r\n',3)
+        self._command('seek',args=(0,))
 
     def skip(self, duration=60):
         time_re = re.compile('(?P<time>\d+)\r\n')
