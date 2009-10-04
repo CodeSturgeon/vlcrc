@@ -33,7 +33,11 @@ class VLCRemote(object):
             self.log.warn(err_str)
             return False
 
-        return True
+        if return_re is None:
+            return True
+
+        match = return_re.search(''.join((cmd_ret,cmd_fin)))
+        return match
 
     def get_filename(self):
         # Clear the queue
@@ -65,6 +69,5 @@ class VLCRemote(object):
         self.cnx.read_until('seek: returned 0 (no error)\r\n',3)
 
     def next(self):
-        self.cnx.write('next\n')
-        self.cnx.read_until('seek: returned 0 (no error)\r\n',3)
+        self._command('next')
 
