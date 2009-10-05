@@ -1,5 +1,5 @@
 # Python VLC RemoteControl interface bridge
-_An easy wat to get VLC and Python talking._
+_An easy way to get VLC and Python talking._
 
 ## VLC Setup
 Have VLC setup it's RC interface on local TCP port 4222. Either by config or using the following command line options:
