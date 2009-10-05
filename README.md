@@ -13,7 +13,7 @@ No dependancies, just python and included batteries.
 
 ## Tool usage
   
-    $vlcrc-easygui
+    $ vlcrc-easygui
 Uses a small EasyGUI tool to group filepaths of videos. Good for sorting videos out of folders of random junk. Dumps the file paths of all the grouped items.  
   
 ## Class usage
