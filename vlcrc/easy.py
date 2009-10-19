@@ -3,7 +3,7 @@ from easygui import multenterbox, buttonbox, codebox
 from vlcrc import VLCRemote
 import logging
 
-def get_group():
+def get_group(groups, vlc):
     choice = buttonbox(msg='Assign a group', title='Assign a group',
                         choices=groups)
     fn = vlc.get_filename()
@@ -30,7 +30,10 @@ def main():
         if menu_selection == 'Next':
             vlc.next()
         elif menu_selection == 'Set Group':
-            get_group()
+            choice = buttonbox(msg='Assign a group', title='Assign a group',
+                                choices=groups)
+            fn = vlc.get_filename()
+            groups_dict[fn] = choice
         elif menu_selection == 'Jump':
             vlc.skip()
         else:
